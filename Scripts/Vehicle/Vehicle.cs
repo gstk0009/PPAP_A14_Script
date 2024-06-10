@@ -1,7 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -53,6 +51,7 @@ public class Vehicle : MonoBehaviour
     private Rigidbody rb;
 
     private Coroutine coroutine;
+    private CarRespawnManager carRespawnManager;
 
     public ParticleSystem[] ps;
     private void Awake()
@@ -67,7 +66,7 @@ public class Vehicle : MonoBehaviour
         player = CharacterManager.Instance.Player;
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         if (Time.timeScale != 0f)
         {
@@ -125,7 +124,7 @@ public class Vehicle : MonoBehaviour
 
     private void firstGo()
     {
-        rb.AddForce(transform.forward * IdlePower, ForceMode.VelocityChange);
+        rb.AddForce(transform.forward * IdlePower * Time.deltaTime, ForceMode.VelocityChange);
     }
 
 
@@ -184,7 +183,7 @@ public class Vehicle : MonoBehaviour
         curV.y = 0.0f;
         transform.rotation = curRot;
 
-        rb.AddForce(curV * force, ForceMode.VelocityChange);
+        rb.AddForce(curV * force * Time.deltaTime, ForceMode.VelocityChange);
     }
 
     private void OnCollisionEnter(Collision collision) // 충돌 시
@@ -234,9 +233,20 @@ public class Vehicle : MonoBehaviour
 
     IEnumerator ReleaseObject()
     {
-        yield return new WaitForSeconds(6f);
+        yield return new WaitForSeconds(5f);
 
         gameObject.SetActive(false);
+
+        carRespawnManager.RespawnCar(gameObject);
+    }
+
+    public void SetCarRespawnManager(CarRespawnManager respawnManager)
+    {
+        carRespawnManager = respawnManager;
+    }
+    IEnumerator ResetObject()
+    {
+        yield return new WaitForSeconds(1f);
 
         ResetCar();
     }
@@ -247,7 +257,7 @@ public class Vehicle : MonoBehaviour
         resetRotation = rotation;
     }
 
-    private void ResetCar()
+    public void ResetCar()
     {
         if (spark != null)
         {
