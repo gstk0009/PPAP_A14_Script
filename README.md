@@ -1,4 +1,6 @@
 # PPAP_A14_Script
+
+ 게임 플레이시 종료 : Alt + F4
  
 각 Script 별 기능
 
