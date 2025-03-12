@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using System;
 using System.Collections;
 using UnityEngine;
@@ -26,6 +27,7 @@ public class Vehicle : MonoBehaviour
     [SerializeField] private float fov;
     [SerializeField] private float lifeTime = 40f;
 
+    private float resetObjectDelayTime = 1f;
     private float resetLifeTime = 40f;
     public LayerMask collisionLayerMask;
 
@@ -48,16 +50,13 @@ public class Vehicle : MonoBehaviour
     public Player player;
     private bool detect = false;
     private float detectDistance = 15f;
-    private Rigidbody rb;
-
-    private Coroutine coroutine;
-    private CarRespawnManager carRespawnManager;
+    private Rigidbody  vehicleRB;
 
     public ParticleSystem[] ps;
     private void Awake()
     {
         effect = GetComponent<VehicleEffect>();
-        rb = GetComponent<Rigidbody>();
+        vehicleRB = GetComponent<Rigidbody>();
     }
 
     private void Start()
@@ -116,17 +115,12 @@ public class Vehicle : MonoBehaviour
         return false;
     }
 
-    void BeforeCrashing()
-    {
-        coroutine = StartCoroutine("ReleaseObject");
-    }
-
+    void BeforeCrashing() { Invoke("releaseVehicle", 5f); }
 
     private void firstGo()
     {
-        rb.AddForce(transform.forward * IdlePower * Time.deltaTime, ForceMode.VelocityChange);
+        vehicleRB.AddForce(transform.forward * IdlePower * Time.deltaTime, ForceMode.VelocityChange);
     }
-
 
     private void OnTriggerEnter(Collider other) // Random 또는 Chasing 상태로 이동
     {
@@ -183,7 +177,7 @@ public class Vehicle : MonoBehaviour
         curV.y = 0.0f;
         transform.rotation = curRot;
 
-        rb.AddForce(curV * force * Time.deltaTime, ForceMode.VelocityChange);
+        vehicleRB.AddForce(curV * force * Time.deltaTime, ForceMode.VelocityChange);
     }
 
     private void OnCollisionEnter(Collision collision) // 충돌 시
@@ -193,7 +187,7 @@ public class Vehicle : MonoBehaviour
             effect.CollisionSound();
             Rigidbody _rb = collision.gameObject.GetComponent<Rigidbody>();
             curV.y = 0;
-            _rb.AddForce(curV * rb.velocity.magnitude, ForceMode.VelocityChange);
+            _rb.AddForce(curV * vehicleRB.velocity.magnitude, ForceMode.VelocityChange);
             ContactPoint contact = collision.contacts[0];
             Quaternion rot = Quaternion.FromToRotation(-Vector3.forward, contact.normal);
 
@@ -230,33 +224,21 @@ public class Vehicle : MonoBehaviour
         }
     }
 
-
-    IEnumerator ReleaseObject()
-    {
-        yield return new WaitForSeconds(5f);
-
-        gameObject.SetActive(false);
-
-        carRespawnManager.RespawnCar(gameObject);
-    }
-
-    public void SetCarRespawnManager(CarRespawnManager respawnManager)
-    {
-        carRespawnManager = respawnManager;
-    }
-    IEnumerator ResetObject()
-    {
-        yield return new WaitForSeconds(1f);
-
-        ResetCar();
-    }
-
     public void SetReset(Vector3 position, Quaternion rotation)
     {
         resetPosition = position;
         resetRotation = rotation;
     }
 
+    // BeforeCrashing 함수에서 Invoke
+    private void releaseVehicle()
+    {
+        gameObject.SetActive(false);
+
+        Invoke("ResetCar", 1f);
+    }
+
+    // releaseVehicle 함수에서 Invoke
     public void ResetCar()
     {
         if (spark != null)
@@ -271,7 +253,7 @@ public class Vehicle : MonoBehaviour
         detect = false;
         gameObject.SetActive(true);
         curState = State.Idle;
-        rb.velocity = Vector3.zero;
+        vehicleRB.velocity = Vector3.zero;
         firstGo();
     }
 }

@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class GetPizza : MonoBehaviour
@@ -63,8 +61,8 @@ public class GetPizza : MonoBehaviour
                     newspawn = Instantiate(WsObject[1]);
 
                 WsSpawnObject.Add(newspawn);
-                newspawn.GetComponent<Transform>().position = WsRandomSpawn[randomIndex].GetComponent<Transform>().position;
-                newspawn.GetComponent<Transform>().rotation = WsRandomSpawn[randomIndex].GetComponent<Transform>().rotation;
+                newspawn.gameObject.transform.position = WsRandomSpawn[randomIndex].gameObject.transform.position;
+                newspawn.gameObject.transform.rotation = WsRandomSpawn[randomIndex].gameObject.transform.rotation;
                 WsRandomSpawn.RemoveAt(randomIndex);
                 count += 1;
                 

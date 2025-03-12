@@ -1,11 +1,12 @@
+using Cysharp.Threading.Tasks;
+using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
-public class CarObjectPool : MonoBehaviour
+public class SpawnCarManager : MonoBehaviour
 {
-    [SerializeField] private GameObject[] carObj;
+    [SerializeField] private Vehicle[] carObj;
 
     private List<float> positionX = new List<float>()
     { -3.9f, 4.44f, 56.27f, 55.95f, 63.8f, 116.4f, 116.08f, 123.93f, 176.2f, 175.88f, 183.73f, 236.3f, 235.98f,
@@ -28,19 +29,24 @@ public class CarObjectPool : MonoBehaviour
 
     private void Awake()
     {
-        SpawnPool();
+        Spawn();
     }
 
-    private void SpawnPool()
+    private void Start()
     {
-        for (int i = 0; i < positionX.Count; i++)
+        GameManager.Instance.spawnCarManager = this;
+    }
+
+    private void Spawn()
+    {
+        for (int positionXIndex = 0; positionXIndex < positionX.Count; positionXIndex++)
         {
-            int randomIndex = Random.Range(0, carObj.Length);
-            GameObject car = Instantiate(carObj[randomIndex]);
-            car.transform.SetParent(gameObject.transform, false);
-            car.transform.position = new Vector3(positionX[i], 0, positionZ[i]);
-            car.transform.rotation = Quaternion.Euler(0, rotationY[i], 0);
-            car.GetComponent<Vehicle>().SetReset(car.transform.position, car.transform.rotation);
+            int randomIndex = UnityEngine.Random.Range(0, carObj.Length);
+            Vehicle car = Instantiate(carObj[randomIndex]);
+            car.gameObject.transform.SetParent(gameObject.transform, false);
+            car.gameObject.transform.position = new Vector3(positionX[positionXIndex], 0, positionZ[positionXIndex]);
+            car.gameObject.transform.rotation = Quaternion.Euler(0, rotationY[positionXIndex], 0);
+            car.SetReset(car.gameObject.transform.position, car.gameObject.transform.rotation);
         }
     }
 }
